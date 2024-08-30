@@ -25,14 +25,15 @@
  * 
  * ***************************************************************************************
  *******************/
-define(['N/email', 'N/file', 'N/record', 'N/search'],
+define(['N/email', 'N/file', 'N/record', 'N/search','N/runtime'],
     /**
  * @param{email} email
  * @param{file} file
  * @param{record} record
  * @param{search} search
+ * @param{runtime} runtime
  */
-    ( email, file, record, search) => {
+    ( email, file, record, search, runtime) => {
 
         /**
          * Defines the Scheduled script trigger point.
@@ -131,6 +132,8 @@ define(['N/email', 'N/file', 'N/record', 'N/search'],
                         log.debug('Email Send')
                     };
                 };
+                let scriptObj = runtime.getCurrentScript();
+                log.debug('Governance remaining:',scriptObj.getRemainingUsage());
             }
             catch(e){
                 log.error('Error Found:',e.message);
