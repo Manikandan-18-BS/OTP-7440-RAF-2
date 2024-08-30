@@ -1,0 +1,24 @@
+<scheduledscript scriptid="customscript_jj_ss_close_sales_order">
+  <description></description>
+  <isinactive>F</isinactive>
+  <name>JJ SS Close Sales Order OTP 7440</name>
+  <notifyadmins>F</notifyadmins>
+  <notifyemails></notifyemails>
+  <notifyowner>T</notifyowner>
+  <scriptfile>[/SuiteScripts/jobinandjismi/OTP-7440-RAF-2/jj_ss_close_sales_order_otp7440.js]</scriptfile>
+  <scriptdeployments>
+    <scriptdeployment scriptid="customdeploy_jj_ss_close_sales_order">
+      <isdeployed>T</isdeployed>
+      <loglevel>DEBUG</loglevel>
+      <status>NOTSCHEDULED</status>
+      <title>JJ SS Close Sales Order OTP 7440</title>
+      <recurrence>
+        <single>
+          <repeat></repeat>
+          <startdate>2024-08-30</startdate>
+          <starttime>01:00:00Z</starttime>
+        </single>
+      </recurrence>
+    </scriptdeployment>
+  </scriptdeployments>
+</scheduledscript>
