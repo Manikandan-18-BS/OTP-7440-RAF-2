@@ -35,15 +35,11 @@ define(['N/email', 'N/file', 'N/record', 'N/search','N/runtime'],
  */
     ( email, file, record, search, runtime) => {
 
-        /**
-         * Defines the Scheduled script trigger point.
-         * @param {Object} scriptContext
-         * @param {string} scriptContext.type - Script execution context. Use values from the scriptContext.InvocationType enum.
-         * @since 2015.2
+         /**
+         * Defines the creating search.
          */
-        const execute = (scriptContext) => {
+        function createSreach(){
             try{
-
                 let srch = search.create({
                     type: search.Type.SALES_ORDER,
                     filters:[["mainline","is","T"],  
@@ -66,54 +62,112 @@ define(['N/email', 'N/file', 'N/record', 'N/search','N/runtime'],
 
                     csvContent+= docNum+','+recId+','+cusName+','+tot+'\n';
 
-                    let recLoad = record.load({
-                        type: record.Type.SALES_ORDER,
-                        id: recId,
-                        isDynamic: true
+                    let recIdNum = recordLoadfunction(recId);
+                    
+                    return true;
+                });
+
+                let returnObj ={
+                    recId : recId,
+                    csv: csvContent
+                }
+
+                return returnObj;
+
+            }
+            catch(e){
+                log.error('Error on Search function:',e.message);
+            }
+
+        }
+
+         /**
+         * Defines the load the file.
+         * @param {Object} num
+         */
+
+        function recordLoadfunction(num){
+            try{
+
+                let recLoad = record.load({
+                    type: record.Type.SALES_ORDER,
+                    id: num,
+                    isDynamic: true
+                });
+    
+                let lineCount = recLoad.getLineCount({
+                    sublistId: 'item'
+                });
+    
+                for(let i=0 ;i < lineCount; i++){
+    
+                    recLoad.selectLine({
+                        sublistId: 'item',
+                        line: i
                     });
-
-                    let lineCount = recLoad.getLineCount({
-                        sublistId: 'item'
+    
+                    recLoad.setCurrentSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'isclosed',
+                        value: true
                     });
-
-                    for(let i=0 ;i < lineCount; i++){
-
-                        recLoad.selectLine({
-                            sublistId: 'item',
-                            line: i
-                        });
-
-                        recLoad.setCurrentSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'isclosed',
-                            value: true
-                        });
-
-                        recLoad.commitLine({
-                            sublistId: 'item',
-                        });
-                    };
-
+    
+                    recLoad.commitLine({
+                        sublistId: 'item',
+                    });
+                };
+    
+                try{
                     let recSave = recLoad.save({
                         enableSourcing: true,
                         ignoreMandatotryFields: true
                     });
+                }
+                catch(e){
+                    log.error('Error on saving File:',e.message);
+                }
+                
+            }
+            catch(e){
+                log.debug('Error on creating Search:',e.message);
+            }
+        }
+        
+        /**
+         * Defines the creation of the CSV file.
+         * @param {Object} Content
+         */
 
-                    return true;
-                });
+        function csvCreateFile(Content){
+            
+            let csvFile = file.create({
+                name: 'Closed Sales Order Details',
+                fileType: file.Type.CSV,
+                contents: Content,
+                folder: -15,
+            });
 
-                if(recId){
+            let csvSave = csvFile.save();
+
+            return csvSave;
+
+        }
+        /**
+         * Defines the Scheduled script trigger point.
+         * @param {Object} scriptContext
+         * @param {string} scriptContext.type - Script execution context. Use values from the scriptContext.InvocationType enum.
+         * @since 2015.2
+         */
+        const execute = (scriptContext) => {
+            try{
+
+                let srchCreate = createSreach();
+                
+                if(srchCreate.recId){
 
                     log.debug('CSV Content:',csvContent);
 
-                    let csvFile = file.create({
-                        name: 'Closed Sales Order Details',
-                        fileType: file.Type.CSV,
-                        contents: csvContent,
-                        folder: -15,
-                    });
-
-                    let csvSave = csvFile.save();
+                    let csvSave = csvCreateFile(srchCreate.csv);
 
                     let emailBody = '<p>We hope this email finds you well.</p>' +
                                         '<p>Please check the attached file</p>' +
